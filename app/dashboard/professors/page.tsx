@@ -10,8 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { CreateUserDialog } from "@/app/ui/users/create-user-dialog"
+import { ProfessorForm } from "@/app/ui/professors/professor-form"
 import { Badge } from "@/components/ui/badge"
 
 export default async function ProfessorsPage() {
@@ -34,7 +33,7 @@ export default async function ProfessorsPage() {
     <div className="w-full">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold">Profesores</h1>
-        <CreateUserDialog role="PROFESSOR" />
+        <ProfessorForm />
       </div>
       <div className="rounded-md border">
         <Table>
@@ -64,7 +63,7 @@ export default async function ProfessorsPage() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm">Editar</Button>
+                    <ProfessorForm professor={p as any} />
                   </TableCell>
                 </TableRow>
               ))
