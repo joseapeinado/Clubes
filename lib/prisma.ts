@@ -4,12 +4,18 @@ import { PrismaClient } from '@prisma/client'
 
 const prismaClientSingleton = () => {
   const connectionString = process.env.DATABASE_URL
+
   if (!connectionString) {
-    // In some build environments, DATABASE_URL might be missing during static generation
-    // We return a client that will fail only when called, or handle it gracefully.
+    // During build, DATABASE_URL might be missing. 
+    // Return a client that won't fail the build but will fail at runtime if no URL is provided.
     return new PrismaClient()
   }
-  const pool = new Pool({ connectionString })
+
+  const pool = new Pool({
+    connectionString,
+    ssl: connectionString.includes('supabase') ? { rejectUnauthorized: false } : undefined
+  })
+
   const adapter = new PrismaPg(pool)
   return new PrismaClient({ adapter } as any)
 }
