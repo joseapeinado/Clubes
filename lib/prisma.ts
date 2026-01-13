@@ -3,6 +3,7 @@ import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '@prisma/client'
 
 // Force SSL certificate bypass for all pg connections in production if needed
+// Note: NODE_TLS_REJECT_UNAUTHORIZED=0 environment variable is also set in Vercel.
 if (process.env.NODE_ENV === 'production') {
   (defaults as any).ssl = { rejectUnauthorized: false }
 }
