@@ -1,6 +1,11 @@
-import { Pool } from 'pg'
+import { Pool, defaults } from 'pg'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '@prisma/client'
+
+// Force SSL certificate bypass for all pg connections in production if needed
+if (process.env.NODE_ENV === 'production') {
+  (defaults as any).ssl = { rejectUnauthorized: false }
+}
 
 const prismaClientSingleton = () => {
   const connectionString = process.env.DATABASE_URL
@@ -13,7 +18,7 @@ const prismaClientSingleton = () => {
 
   const pool = new Pool({
     connectionString,
-    ssl: connectionString.includes('supabase') ? { rejectUnauthorized: false } : undefined
+    ssl: { rejectUnauthorized: false }
   })
 
   const adapter = new PrismaPg(pool)
