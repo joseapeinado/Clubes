@@ -1,17 +1,7 @@
-import { Pool } from 'pg'
-import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '@prisma/client'
 
-const connectionString = process.env.DATABASE_URL
-
 const prismaClientSingleton = () => {
-  // In dev, reuse connection? Pool manages it.
-  // However, recreating pool on hot reload might verify limits. 
-  // Global variable prevents multiple clients, what about pools?
-  // Usually standard pattern is fine.
-  const pool = new Pool({ connectionString })
-  const adapter = new PrismaPg(pool)
-  return new PrismaClient({ adapter })
+  return new PrismaClient()
 }
 
 declare global {

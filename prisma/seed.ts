@@ -4,9 +4,16 @@ import { PrismaClient, Role } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 
 const connectionString = process.env.DATABASE_URL
-const pool = new Pool({ connectionString })
-const adapter = new PrismaPg(pool)
-const prisma = new PrismaClient({ adapter })
+let prisma: PrismaClient
+let pool: Pool | undefined
+
+if (connectionString) {
+  pool = new Pool({ connectionString })
+  const adapter = new PrismaPg(pool)
+  prisma = new PrismaClient({ adapter } as any)
+} else {
+  prisma = new PrismaClient()
+}
 
 async function main() {
   const hashedPassword = await bcrypt.hash('123456', 10)
@@ -212,11 +219,11 @@ async function main() {
 main()
   .then(async () => {
     await prisma.$disconnect()
-    await pool.end()
+    if (pool) await pool.end()
   })
   .catch(async (e) => {
     console.error(e)
     await prisma.$disconnect()
-    await pool.end()
+    if (pool) await pool.end()
     process.exit(1)
   })
