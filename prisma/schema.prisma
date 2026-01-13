@@ -1,0 +1,184 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  SUPER_ADMIN
+  CLUB_ADMIN
+  PROFESSOR
+  STUDENT
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+model Club {
+  id            String   @id @default(uuid())
+  name          String
+  slug          String   @unique
+  logoUrl       String?
+  primaryColor  String?  @default("#000000")
+  secondaryColor String? @default("#ffffff")
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  users         User[]
+  disciplines   Discipline[]
+  payments      Payment[]
+}
+
+model User {
+  id            String    @id @default(uuid())
+  name          String
+  email         String    @unique
+  password      String?   // Hashed password, optional for social login/initial setup
+  role          Role      @default(STUDENT)
+  status        UserStatus @default(ACTIVE)
+  
+  clubId        String?
+  club          Club?     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  // Profile info
+  dni           String?   @unique
+  sex           String?
+  phone         String?
+  address       String?
+  birthDate     DateTime?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relationships
+  enrollments         Enrollment[] // For Students: Which categories are they in?
+  teachingAssignments TeachingAssignment[] // For Professors: Which categories do they teach?
+  payments            Payment[]
+}
+
+model Discipline {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  
+  clubId      String
+  club        Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  categories  Category[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Category {
+  id           String   @id @default(uuid())
+  name         String   // e.g., "Sub-14", "Primera"
+  description  String?
+  monthlyFee   Float?   @default(5000) // Monthly fee for this category
+  
+  disciplineId String
+  discipline   Discipline @relation(fields: [disciplineId], references: [id], onDelete: Cascade)
+
+  enrollments         Enrollment[]
+  teachingAssignments TeachingAssignment[]
+  payments            Payment[]
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// Student enrollment in a category
+model Enrollment {
+  id          String   @id @default(uuid())
+  
+  userId      String   // Student
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  
+  enrolledAt  DateTime @default(now())
+
+  @@unique([userId, categoryId]) // Prevent duplicate enrollment
+}
+
+// Professor assignment to a category
+model TeachingAssignment {
+  id          String   @id @default(uuid())
+  
+  userId      String   // Professor
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  assignedAt  DateTime @default(now())
+  
+  @@unique([userId, categoryId])
+}
+
+model Payment {
+  id          String        @id @default(uuid())
+  
+  userId      String        // Student
+  user        User          @relation(fields: [userId], references: [id])
+  
+  clubId      String
+  club        Club          @relation(fields: [clubId], references: [id])
+  
+  categoryId  String?       // Link to category (for enrollment-based fees)
+  category    Category?     @relation(fields: [categoryId], references: [id])
+  
+  amount      Float
+  status      PaymentStatus @default(PENDING)
+  
+  period      DateTime      // The month/year this payment covers (e.g. 2024-03-01)
+  dueDate     DateTime
+  paidAt      DateTime?
+  
+  notes       String?
+  receiptUrl  String?
+  paymentMethod String? // e.g. "TRANSFER", "CASH", "MP"
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+// Audit trail for payment regeneration (destructive operations)
+model PaymentAudit {
+  id              String        @id @default(uuid())
+  
+  paymentId       String        // Original payment ID that was overwritten
+  userId          String
+  clubId          String
+  categoryId      String?
+  
+  amount          Float
+  status          PaymentStatus
+  period          DateTime
+  dueDate         DateTime
+  paidAt          DateTime?
+  receiptUrl      String?
+  
+  regeneratedBy   String        // Admin user ID who triggered regeneration
+  regeneratedAt   DateTime      @default(now())
+  reason          String?       // Optional reason for regeneration
+  
+  createdAt       DateTime      @default(now())
+}

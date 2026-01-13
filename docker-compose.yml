@@ -1,24 +1,42 @@
 version: '3.8'
 
 services:
-  frontend:
+  app:
     build:
       context: .
-      dockerfile: Dockerfile.dev
-    ports:
-      - "3001:3000"
+      dockerfile: Dockerfile
+    container_name: clubes_app
     volumes:
       - .:/app
       - /app/node_modules
+    ports:
+      - "3001:3001"
     environment:
-      - NODE_ENV=development
-      - NEXT_PUBLIC_APP_URL=http://localhost:3001
-      - NEXT_PUBLIC_CLUB_NAME=Club Deportivo
-    stdin_open: true
-    tty: true
-    networks:
-      - clubes-network
+      # Use the specific container name for host
+      DATABASE_URL: postgres://postgres:password@postgres:5432/clubes_db?schema=public
+      DIRECT_URL: postgres://postgres:password@postgres:5432/clubes_db?schema=public
+      AUTH_SECRET: supersecret_dev_key
+      # Allow NextAuth to work in docker
+      AUTH_TRUST_HOST: "true"
+      NEXTAUTH_URL: "http://localhost:3001"
+    depends_on:
+      - postgres
+    # Command to ensure migrates run before start?
+    # Or just run dev and let user migrate manually?
+    # User asked for automated environment.
+    command: sh -c "npx prisma generate && npm run dev -- -p 3001"
 
-networks:
-  clubes-network:
-    driver: bridge
+  postgres:
+    image: postgres:15-alpine
+    container_name: clubes_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: clubes_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
