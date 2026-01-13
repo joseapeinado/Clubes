@@ -28,9 +28,10 @@ import { Plus, Pencil } from "lucide-react"
 
 export function StudentForm({ student }: { student?: User }) {
   const [open, setOpen] = useState(false)
+  const initialState: StudentState = { message: "", errors: {} }
   const [state, formAction, isPending] = useActionState(
     student ? updateStudent.bind(null, student.id) : createStudent,
-    { message: "", errors: {} }
+    initialState
   )
 
   useEffect(() => {

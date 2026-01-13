@@ -25,7 +25,7 @@ export type StudentState = {
     sex?: string[]
     phone?: string[]
   }
-  message?: string
+  message?: string | null
 }
 
 export async function createStudent(prevState: StudentState, formData: FormData) {
