@@ -18,9 +18,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Plus } from "lucide-react"
-import { useFormState, useFormStatus } from 'react-dom'
-import { enrollStudent } from "@/app/lib/assignment-actions"
-import { useState, useEffect } from "react"
+import { useFormStatus } from 'react-dom'
+import { enrollStudent, State } from "@/app/lib/assignment-actions"
+import { useState, useEffect, useActionState } from "react"
 
 // Types
 type Student = { id: string; name: string; email: string; dni?: string | null }
@@ -32,10 +32,12 @@ export function EnrollStudentDialog({
 }: {
   categoryId: string
   disciplineId: string
+  professors?: any // not used but for safety if it was there
   students: Student[]
 }) {
   const [open, setOpen] = useState(false)
-  const [state, dispatch] = useFormState(enrollStudent, { message: null })
+  const initialState: State = { message: null }
+  const [state, dispatch, isPending] = useActionState(enrollStudent, initialState)
 
   useEffect(() => {
     if (state.message === 'Student Enrolled') {
@@ -76,7 +78,7 @@ export function EnrollStudentDialog({
             <p className="text-red-500 text-sm mb-4">{state.message}</p>
           )}
           <DialogFooter>
-            <SubmitButton />
+            <SubmitButton isPending={isPending} />
           </DialogFooter>
         </form>
       </DialogContent>
@@ -84,11 +86,11 @@ export function EnrollStudentDialog({
   )
 }
 
-function SubmitButton() {
+function SubmitButton({ isPending }: { isPending: boolean }) {
   const { pending } = useFormStatus()
   return (
-    <Button type="submit" disabled={pending}>
-      {pending ? "Guardando..." : "Guardar"}
+    <Button type="submit" disabled={pending || isPending}>
+      {(pending || isPending) ? "Guardando..." : "Guardar"}
     </Button>
   )
 }

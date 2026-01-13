@@ -13,14 +13,14 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Plus } from "lucide-react"
-import { useFormState, useFormStatus } from 'react-dom'
+import { useFormStatus } from 'react-dom'
 import { createUser } from "@/app/lib/user-actions"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useActionState } from "react"
 import { Role } from "@prisma/client"
 
 export function CreateUserDialog({ role }: { role: "PROFESSOR" | "STUDENT" }) {
   const [open, setOpen] = useState(false)
-  const [state, dispatch] = useFormState(createUser, { message: null, errors: {} })
+  const [state, dispatch, isPending] = useActionState(createUser, { message: '', errors: {} })
 
   useEffect(() => {
     if (state.message === 'User Created') {
@@ -74,7 +74,7 @@ export function CreateUserDialog({ role }: { role: "PROFESSOR" | "STUDENT" }) {
             <p className="text-red-500 text-sm mb-4">{state.message}</p>
           )}
           <DialogFooter>
-            <SubmitButton />
+            <SubmitButton isPending={isPending} />
           </DialogFooter>
         </form>
       </DialogContent>
@@ -82,11 +82,11 @@ export function CreateUserDialog({ role }: { role: "PROFESSOR" | "STUDENT" }) {
   )
 }
 
-function SubmitButton() {
+function SubmitButton({ isPending }: { isPending: boolean }) {
   const { pending } = useFormStatus()
   return (
-    <Button type="submit" disabled={pending}>
-      {pending ? "Guardando..." : "Guardar"}
+    <Button type="submit" disabled={pending || isPending}>
+      {(pending || isPending) ? "Guardando..." : "Guardar"}
     </Button>
   )
 }

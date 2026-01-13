@@ -26,12 +26,13 @@ const formatDate = (date: Date) => date.toISOString().split('T')[0]
 export default async function PaymentsPage({
   searchParams,
 }: {
-  searchParams?: {
+  searchParams: Promise<{
     month?: string
     year?: string
     search?: string
-  }
+  }>
 }) {
+  const { month, year, search } = await searchParams
   const session = await auth()
   const user = session?.user
 
@@ -41,9 +42,9 @@ export default async function PaymentsPage({
 
   // Parse Filters
   const currentDate = new Date()
-  const selectedMonth = searchParams?.month ? parseInt(searchParams.month) : currentDate.getMonth() + 1
-  const selectedYear = searchParams?.year ? parseInt(searchParams.year) : currentDate.getFullYear()
-  const searchQuery = searchParams?.search || ""
+  const selectedMonth = month ? parseInt(month) : currentDate.getMonth() + 1
+  const selectedYear = year ? parseInt(year) : currentDate.getFullYear()
+  const searchQuery = search || ""
 
   // Construct Date Date Range for Filter
   const startDate = new Date(selectedYear, selectedMonth - 1, 1)

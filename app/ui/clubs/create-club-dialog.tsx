@@ -13,18 +13,18 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Plus } from "lucide-react"
-import { useFormState, useFormStatus } from 'react-dom'
+import { useFormStatus } from 'react-dom'
 import { createClub } from "@/app/lib/club-actions"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useActionState } from "react"
 
 export function CreateClubDialog() {
   const [open, setOpen] = useState(false)
-  const [state, dispatch] = useFormState(createClub, { message: null, errors: {} })
+  const [state, dispatch, isPending] = useActionState(createClub, { message: '', errors: {} })
 
   useEffect(() => {
     if (state.message === 'Club Created') {
       setOpen(false)
-      // Reset state? useFormState doesn't easily reset without unmount or key change
+      // Reset state? useActionState doesn't easily reset without unmount or key change
     }
   }, [state.message])
 
@@ -69,7 +69,7 @@ export function CreateClubDialog() {
             <p className="text-red-500 text-sm mb-4">{state.message}</p>
           )}
           <DialogFooter>
-            <SubmitButton />
+            <SubmitButton isPending={isPending} />
           </DialogFooter>
         </form>
       </DialogContent>
@@ -77,11 +77,11 @@ export function CreateClubDialog() {
   )
 }
 
-function SubmitButton() {
+function SubmitButton({ isPending }: { isPending: boolean }) {
   const { pending } = useFormStatus()
   return (
-    <Button type="submit" disabled={pending}>
-      {pending ? "Guardando..." : "Guardar"}
+    <Button type="submit" disabled={pending || isPending}>
+      {(pending || isPending) ? "Guardando..." : "Guardar"}
     </Button>
   )
 }

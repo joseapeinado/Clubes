@@ -18,9 +18,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Plus } from "lucide-react"
-import { useFormState, useFormStatus } from 'react-dom'
-import { assignProfessor } from "@/app/lib/assignment-actions"
-import { useState, useEffect } from "react"
+import { useFormStatus } from 'react-dom'
+import { assignProfessor, State } from "@/app/lib/assignment-actions"
+import { useState, useEffect, useActionState } from "react"
 
 type Professor = { id: string; name: string; email: string }
 
@@ -34,7 +34,8 @@ export function AssignProfessorDialog({
   professors: Professor[]
 }) {
   const [open, setOpen] = useState(false)
-  const [state, dispatch] = useFormState(assignProfessor, { message: null })
+  const initialState: State = { message: null }
+  const [state, dispatch, isPending] = useActionState(assignProfessor, initialState)
 
   useEffect(() => {
     if (state.message === 'Professor Assigned') {
@@ -73,7 +74,7 @@ export function AssignProfessorDialog({
             <p className="text-red-500 text-sm mb-4">{state.message}</p>
           )}
           <DialogFooter>
-            <SubmitButton />
+            <SubmitButton isPending={isPending} />
           </DialogFooter>
         </form>
       </DialogContent>
@@ -81,11 +82,11 @@ export function AssignProfessorDialog({
   )
 }
 
-function SubmitButton() {
+function SubmitButton({ isPending }: { isPending: boolean }) {
   const { pending } = useFormStatus()
   return (
-    <Button type="submit" disabled={pending}>
-      {pending ? "Guardando..." : "Guardar"}
+    <Button type="submit" disabled={pending || isPending}>
+      {(pending || isPending) ? "Guardando..." : "Guardar"}
     </Button>
   )
 }
