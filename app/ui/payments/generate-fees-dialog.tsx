@@ -247,7 +247,7 @@ export function GenerateFeesDialog({ disciplines }: { disciplines: Discipline[] 
             )}
 
             <DialogFooter>
-              <SubmitButton disabled={stats.totalEnrollments === 0} />
+              <SubmitButton disabled={stats.totalEnrollments === 0} isPending={isPending} />
             </DialogFooter>
           </form>
         </DialogContent>
@@ -294,11 +294,11 @@ export function GenerateFeesDialog({ disciplines }: { disciplines: Discipline[] 
   )
 }
 
-function SubmitButton({ disabled }: { disabled?: boolean }) {
+function SubmitButton({ disabled, isPending }: { disabled?: boolean, isPending: boolean }) {
   const { pending } = useFormStatus()
   return (
-    <Button type="submit" disabled={pending || disabled}>
-      {pending ? "Generando..." : "Generar Cuotas"}
+    <Button type="submit" disabled={pending || isPending || disabled}>
+      {(pending || isPending) ? "Generando..." : "Generar Cuotas"}
     </Button>
   )
 }

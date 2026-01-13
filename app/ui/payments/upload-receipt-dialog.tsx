@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useActionState } from 'react'
 import { registerPayment } from '@/app/lib/payment-actions'
 import { Button } from '@/components/ui/button'
@@ -25,11 +25,14 @@ export function UploadReceiptDialog({ paymentId }: { paymentId: string }) {
   const handleSubmit = async (formData: FormData) => {
     formData.set('receiptUrl', receiptUrl)
     await dispatch(formData)
-    if (!state.errors) {
+  }
+
+  useEffect(() => {
+    if (state.message === 'Payment Registered') {
       setOpen(false)
       setReceiptUrl('')
     }
-  }
+  }, [state.message])
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
